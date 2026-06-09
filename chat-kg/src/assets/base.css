@@ -1,0 +1,58 @@
+/* Legacy color palette - kept for backwards compatibility */
+:root {
+  --vt-c-white: #ffffff;
+  --vt-c-white-soft: #f8f8f8;
+  --vt-c-white-mute: #f2f2f2;
+
+  --vt-c-black: #181818;
+  --vt-c-black-soft: #222222;
+  --vt-c-black-mute: #282828;
+
+  --vt-c-indigo: #2c3e50;
+
+  --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
+  --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
+  --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
+  --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
+
+  --vt-c-text-light-1: var(--vt-c-indigo);
+  --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
+  --vt-c-text-dark-1: var(--vt-c-white);
+  --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
+}
+
+/* Semantic color variables - mapped to new design system */
+:root {
+  --color-background: var(--color-neutral-0, #ffffff);
+  --color-background-soft: var(--color-neutral-50, #fafbfc);
+  --color-background-mute: var(--color-neutral-100, #f4f6f8);
+
+  --color-border: var(--color-neutral-200, #e4e8ec);
+  --color-border-hover: var(--color-neutral-300, #d1d7de);
+
+  --color-heading: var(--color-neutral-900, #1a2028);
+  --color-text: var(--color-neutral-800, #2d3640);
+
+  --section-gap: 160px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  position: relative;
+}
+
+body {
+  display: flow-root;
+  min-height: 100vh;
+  color: var(--color-neutral-800, var(--color-text));
+  background: var(--bg-page, var(--color-background));
+  line-height: var(--leading-normal, 1.5);
+  font-family: var(--font-sans, 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
+  font-size: var(--text-base, 16px);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
