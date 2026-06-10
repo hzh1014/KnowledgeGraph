@@ -1,0 +1,12 @@
+node_modules
+chat-kg/node_modules
+__pycache__
+*.pyc
+.git
+.gitignore
+.env
+weights/
+docs/
+tests/
+*.md
+KnowledgeGraph/

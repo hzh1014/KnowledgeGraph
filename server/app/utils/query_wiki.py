@@ -1,6 +1,7 @@
 import wikipediaapi
 
 from opencc import OpenCC
+from modules.utils.logger import logger
 
 cc = OpenCC('s2t')
 
@@ -26,6 +27,6 @@ class WikiSearcher(object):
                 result = page
 
         except Exception as e:
-            print(e)
+            logger.error(f"Wikipedia search failed for '{query}': {e}")
 
         return result

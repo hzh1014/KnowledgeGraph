@@ -1,11 +1,27 @@
 import json
 import os
+import copy
+
+
+# Module-level cache: load data.json once
+_data_cache = None
+
+
+def _load_data():
+    """Load and cache knowledge graph data from data.json."""
+    global _data_cache
+    if _data_cache is None:
+        data_file = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+            'data', 'data.json'
+        )
+        with open(data_file, 'r', encoding='utf-8') as f:
+            _data_cache = json.load(f)
+    return _data_cache
 
 
 def search_node_item(user_input, lite_graph=None):
-    data_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'data', 'data.json')
-    with open(data_file, 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    data = _load_data()
 
     if lite_graph is None:
         lite_graph = {
@@ -15,27 +31,24 @@ def search_node_item(user_input, lite_graph=None):
             'categories': data.get('categories', [])
         }
 
-    # 利用thefuzz库来选取最相近的节点
-    # node_names = [node['name'] for node in data['nodes']]
-    # user_input = process.extractOne(user_input, node_names)[0]
-
     DEEP = 1
 
     # search node
     search_nodes = [user_input]
     for d in range(DEEP):
-        for serch_node in search_nodes:
+        for search_node in search_nodes:
             for edge in data['links']:
-                source = data['nodes'][int(edge['source'])]
-                target = data['nodes'][int(edge['target'])]
-                if source['name'] in serch_node or serch_node in source['name'] or target['name'] in serch_node or serch_node in target['name']:
-                # if source['name'] == serch_node or target['name'] == serch_node:
+                source = copy.deepcopy(data['nodes'][int(edge['source'])])
+                target = copy.deepcopy(data['nodes'][int(edge['target'])])
+                if source['name'] in search_node or search_node in source['name'] or target['name'] in search_node or search_node in target['name']:
                     sent = data['sents'][edge['sent']]
                     if sent not in lite_graph['sents']:
-                        edge['sent'] = len(lite_graph['sents'])
+                        edge_copy = copy.deepcopy(edge)
+                        edge_copy['sent'] = len(lite_graph['sents'])
                         lite_graph['sents'].append(sent)
                     else:
-                        edge['sent'] = lite_graph['sents'].index(sent)
+                        edge_copy = copy.deepcopy(edge)
+                        edge_copy['sent'] = lite_graph['sents'].index(sent)
 
                     if source not in lite_graph['nodes']:
                         source['id'] = len(lite_graph['nodes'])
@@ -49,9 +62,9 @@ def search_node_item(user_input, lite_graph=None):
                     else:
                         target['id'] = lite_graph['nodes'].index(target)
 
-                    edge['source'] = source['id']
-                    edge['target'] = target['id']
-                    lite_graph['links'].append(edge)
+                    edge_copy['source'] = source['id']
+                    edge_copy['target'] = target['id']
+                    lite_graph['links'].append(edge_copy)
 
         if len(lite_graph['nodes']) == 0:
             break

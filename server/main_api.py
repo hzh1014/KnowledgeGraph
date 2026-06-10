@@ -22,6 +22,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = settings.CUDA_VISIBLE_DEVICES
 from flask import Flask, request, Response, jsonify, stream_with_context
 from flask_cors import CORS
 import requests
+import threading
+import uuid
 
 app = Flask(__name__)
 CORS(app)
@@ -31,6 +33,7 @@ USE_API_MODE = os.environ.get("USE_API_MODE", "false").lower() == "true"
 API_BASE_URL = os.environ.get("API_BASE_URL", "https://api.deepseek.com/v1")
 API_KEY = os.environ.get("API_KEY", "")
 API_MODEL_NAME = os.environ.get("API_MODEL_NAME", "deepseek-chat")
+HISTORY_WINDOW = int(os.environ.get("HISTORY_WINDOW", "10"))  # max rounds to send to LLM (0 = unlimited)
 
 # Load knowledge graph data
 DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'data.json')
@@ -83,6 +86,21 @@ except Exception as e:
 
 from opencc import OpenCC
 cc = OpenCC('t2s')
+
+# In-memory caches for repeated queries
+_wiki_cache = {}    # {query: {"title": ..., "summary": ...}}
+_graph_cache = {}   # {entity_name: {"graph": ..., "triples": [...]}}
+
+
+def error_response(message, code=500, request_id=None):
+    """Return standardized error JSON response."""
+    return jsonify({
+        "error": {
+            "code": code,
+            "message": message,
+            "request_id": request_id or str(uuid.uuid4())[:8]
+        }
+    }), code
 
 
 def call_api_stream(messages):
@@ -178,15 +196,25 @@ def chat():
         except Exception as e:
             logger.error(f"NER failed: {e}")
 
-    # ========== 2. Knowledge Graph Retrieval ==========
-    graph = {}
+    # ========== 2. Knowledge Graph Retrieval (with cache) ==========
+    graph = {"nodes": [], "links": [], "sents": [], "categories": []}
     triples = []
     if search_node_item is not None and entities:
         try:
             for entity in entities:
-                graph = search_node_item(entity, graph if graph else None)
-                if graph and convert_graph_to_triples:
-                    triples += convert_graph_to_triples(graph, entity)
+                if entity in _graph_cache:
+                    entity_graph, entity_triples = _graph_cache[entity]
+                else:
+                    entity_graph = search_node_item(entity)
+                    entity_triples = convert_graph_to_triples(entity_graph, entity) if entity_graph and convert_graph_to_triples else []
+                    _graph_cache[entity] = (entity_graph, entity_triples)
+                # Merge entity subgraph into combined graph
+                graph["nodes"].extend(entity_graph.get("nodes", []))
+                graph["links"].extend(entity_graph.get("links", []))
+                graph["sents"].extend(entity_graph.get("sents", []))
+                if not graph["categories"] and entity_graph.get("categories"):
+                    graph["categories"] = entity_graph["categories"]
+                triples += entity_triples
             logger.info(f"Found {len(triples)} triples")
         except Exception as e:
             logger.error(f"Graph search failed: {e}")
@@ -203,40 +231,56 @@ def chat():
         except Exception as e:
             logger.error(f"Image search failed: {e}")
 
-    # ========== 4. Wikipedia Search (with timeout) ==========
+    # ========== 4. Wikipedia Search (with timeout + cache) ==========
     wiki = {"title": "无相关信息", "summary": "暂无相关描述"}
     if wiki_searcher is not None:
-        import threading
-        wiki_result_holder = [None]
-        def wiki_search_task():
-            try:
-                for ent in entities + [user_input]:
-                    result = wiki_searcher.search(ent)
-                    if result is not None:
-                        wiki_result_holder[0] = result
-                        break
-            except Exception as e:
-                logger.error(f"Wiki search failed: {e}")
-        t = threading.Thread(target=wiki_search_task)
-        t.start()
-        t.join(timeout=5)  # 5 second timeout
-        if t.is_alive():
-            logger.warning("Wikipedia search timed out")
-        elif wiki_result_holder[0] is not None:
-            try:
-                wiki = {
-                    "title": cc.convert(wiki_result_holder[0].title),
-                    "summary": cc.convert(wiki_result_holder[0].summary[:500])
-                }
-            except Exception as e:
-                logger.error(f"Wiki result processing failed: {e}")
+        # Check cache first
+        cache_key = None
+        for ent in entities + [user_input]:
+            if ent in _wiki_cache:
+                wiki = _wiki_cache[ent]
+                cache_key = None  # found in cache, no need to search
+                break
+            if cache_key is None:
+                cache_key = ent  # first entity to search if cache miss
+
+        if cache_key is not None and wiki["summary"] == "暂无相关描述":
+            wiki_result_holder = [None]
+            def wiki_search_task():
+                try:
+                    for ent in entities + [user_input]:
+                        result = wiki_searcher.search(ent)
+                        if result is not None:
+                            wiki_result_holder[0] = result
+                            break
+                except Exception as e:
+                    logger.error(f"Wiki search failed: {e}")
+            t = threading.Thread(target=wiki_search_task)
+            t.start()
+            t.join(timeout=5)  # 5 second timeout
+            if t.is_alive():
+                logger.warning("Wikipedia search timed out")
+            elif wiki_result_holder[0] is not None:
+                try:
+                    wiki = {
+                        "title": cc.convert(wiki_result_holder[0].title),
+                        "summary": cc.convert(wiki_result_holder[0].summary[:500])
+                    }
+                    # Cache the result for all searched entities
+                    for ent in entities + [user_input]:
+                        _wiki_cache[ent] = wiki
+                except Exception as e:
+                    logger.error(f"Wiki result processing failed: {e}")
 
     # ========== 5. Build API Messages ==========
     system_prompt = "你叫 ChatKG，是一个基于知识图谱的问答机器人。请用简洁且准确的话回答用户的问题。"
     messages = [{"role": "system", "content": system_prompt}]
 
-    # Add history
-    for h in history:
+    # Add history (apply window: keep last N rounds)
+    windowed = history
+    if HISTORY_WINDOW > 0 and len(history) > HISTORY_WINDOW:
+        windowed = history[-HISTORY_WINDOW:]
+    for h in windowed:
         if isinstance(h, (list, tuple)) and len(h) == 2:
             messages.append({"role": "user", "content": h[0]})
             messages.append({"role": "assistant", "content": h[1]})
@@ -263,12 +307,9 @@ def chat():
                 if chunk is None:
                     continue
                 full_response += str(chunk)
+                # Lightweight chunk: only updates, no graph/wiki/image
                 result = {
-                    "history": history + [(user_input, full_response)],
                     "updates": {"query": user_input, "response": full_response},
-                    "image": image,
-                    "graph": graph,
-                    "wiki": wiki
                 }
                 yield json.dumps(result, ensure_ascii=False).encode('utf8') + b'\n'
         except Exception as e:
@@ -276,14 +317,15 @@ def chat():
             if not full_response:
                 full_response = f"API调用出错: {str(e)}"
 
-        # Send final result
+        # Final chunk: full data with history, graph, wiki, image, entities
         if full_response:
             result = {
                 "history": history + [(user_input, full_response)],
                 "updates": {"query": user_input, "response": full_response},
                 "image": image,
                 "graph": graph,
-                "wiki": wiki
+                "wiki": wiki,
+                "entities": entities
             }
             yield json.dumps(result, ensure_ascii=False).encode('utf8') + b'\n'
 
@@ -305,8 +347,9 @@ def get_entity(name):
             triples = convert_graph_to_triples(graph, name) if convert_graph_to_triples else []
             return jsonify({"entity": name, "graph": graph, "triples": triples})
         except Exception as e:
-            return jsonify({"error": str(e)}), 500
-    return jsonify({"error": "Graph utils not available"}), 503
+            logger.error(f"Entity search failed for '{name}': {e}")
+            return error_response(f"Entity search failed: {str(e)}", 500)
+    return error_response("Graph utils not available", 503)
 
 
 @app.route('/config', methods=['GET'])
