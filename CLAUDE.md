@@ -62,13 +62,6 @@ Backend (Flask, port 8000)
 
 `POST /chat` → NER extracts entities → graph triples retrieved → Wikipedia searched → reference material injected into system prompt → streamed to external LAPI → response streamed back as newline-delimited JSON.
 
-### Configuration
-
-All config via environment variables in `.env` (copy from `.env.example`). Key settings:
-- `USE_API_MODE=true` — enables external LLM API (required for web app)
-- `API_BASE_URL`, `API_KEY`, `API_MODEL_NAME` — OpenAI-compatible endpoint
-- `config/settings.py` — `Settings` dataclass singleton, reads `.env` at import time
-
 ### Frontend-backend contract
 
 - Chat: `POST /chat` with `{prompt, history}`, returns streaming NDJSON with `{history, updates, image, graph, wiki}`
@@ -85,67 +78,46 @@ The knowledge graph covers Chinese naval ship damage control and diving technolo
 
 ## Known Issues
 
-- ~~`graph_utils.py:search_node_item()` mutates shared graph data in-place~~ — **fixed**: deep-copy nodes/edges before modifying.
-- ~~`graph_utils.py` re-reads `data.json` on every call~~ — **fixed**: module-level cache (`_data_cache`).
-- ~~`ner_api.py` recomputes `short_entities` filter on every `predict()` call~~ — **fixed**: moved to `__init__`.
 - Wikipedia API is slow/blocked in China — mitigated by 5-second threading timeout.
 - PaddlePaddle 3.x is incompatible with the wordtag inference model (PIR format) — NER uses jieba fallback instead.
 
-## Optimization Roadmap
+## Caching Architecture
 
-按优先级分轮次，每轮聚焦一个主题。完成一轮后在此打勾。
+The backend uses three module-level caches to avoid redundant computation:
+- **`_data_cache`** (`graph_utils.py`): loads `server/data/data.json` once at import time
+- **`_graph_cache`** (`main_api.py`): per-request graph search results, reset on each `/chat` call
+- **`_wiki_cache`** (`main_api.py`): Wikipedia results keyed by entity name, persists across requests
 
-### Round 1 — 后端数据层修复（正确性）✅
+## NER Pipeline
 
-- [x] `graph_utils.py`: `search_node_item()` 改为深拷贝节点/边，不再变异共享数据
-- [x] `graph_utils.py`: `data.json` 改为模块级缓存，启动时读取一次
-- [x] `ner_api.py`: `short_entities` 过滤移入 `__init__`，避免每次 predict 重复计算
-- [x] `graph_utils.py`: 修复 `serch_node` 拼写错误
-- [x] 为以上修复补充 pytest 用例（21 个新用例，全量 65 通过）
+`server/app/utils/ner_api.py` — `NerAPI` singleton (accessed via `get_ner()`):
+- Loads entity names from `data.json` into jieba user dictionary at init
+- Loads synonym/alias mappings from `server/data/synonyms.json` (e.g., "军舰"→"舰艇")
+- `predict()` returns entities sorted by confidence: exact (1.0) > synonym (0.9) > entity-in-text (0.8) > combo (0.7) > fuzzy (0.5)
+- Multi-word combo matching: adjacent jieba tokens are recombined to catch entities split by the tokenizer
 
-### Round 2 — 流式响应优化（性能）✅
+## Frontend Details
 
-- [x] `main_api.py` 流式响应：中间 chunk 只发 `updates`，最终 chunk 再发完整 `graph`/`wiki`/`image`
-- [x] `ChatView.vue`: 修复 off-by-one bug（最后 chunk 元数据未应用到 UI）+ 防止 undefined 覆盖
-- [x] Wikipedia 结果加内存缓存（`_wiki_cache`，同一实体不重复查询）
-- [x] 图谱搜索结果缓存（`_graph_cache`，独立搜索 + 合并，避免累积污染）
-- [x] `main_api.py`: `import threading` 移至文件顶部
-- [x] 新增 8 个缓存测试（全量 73 通过）
+- **State persistence**: ChatView stores `messages` + `history` in localStorage; restores on page refresh
+- **Graph format**: ECharts `webkitDep` layout. Nodes need integer `id`, `symbolSize`, `category`. Links need integer `source`/`target`. The `categories` array drives node coloring.
+- **Entity highlighting**: Backend returns `entities` list in the final chat chunk. Frontend renders these with green background via `v-html`; clicking navigates to `/kg?entity=XXX`
+- **API proxy**: Vite dev server proxies `/api/*` → `VITE_API_URL` (default `http://localhost:8000`)
 
-### Round 3 — NER 增强（准确性）✅
+## Configuration
 
-- [x] 引入同义词/别名词典 `server/data/synonyms.json`（如"军舰"→"舰艇"），加载时构建反向映射
-- [x] 支持多词组合实体匹配（相邻 jieba 分词重新组合，如"灭火"+"训练"→"灭火训练"）
-- [x] NER 结果按置信度排序（exact 1.0 > synonym 0.9 > substring 0.8 > combo 0.7 > fuzzy 0.5）
-- [x] 新增 22 个 NER 测试（同义词、组合匹配、置信度、排序），全量 82 通过
+All config via environment variables in `.env` (copy from `.env.example`). The `config/settings.py` `Settings` dataclass reads `.env` with a custom parser (no `python-dotenv` dependency). Key settings:
+- `USE_API_MODE=true` — enables external LLM API (required for web app)
+- `API_BASE_URL`, `API_KEY`, `API_MODEL_NAME` — OpenAI-compatible endpoint
+- `HISTORY_WINDOW=10` — multi-turn context window (0 = unlimited)
+- `SCHEMA_VERSION=v4` — selects entity/relation schema from `data/schema/`
 
-### Round 4 — 前端体验优化 ✅
+## Deployment
 
-- [x] GraphView: 添加节点搜索框，输入关键词高亮匹配节点
-- [x] GraphView: 点击节点显示详情面板（名称、分类、关联节点标签、关联边列表、相关句子）
-- [x] GraphView: 添加重置缩放按钮（ECharts restore action）
-- [x] KnowledgeGraph.vue: 组件尺寸改为响应式（width: 100%, min-width: 300px）
-- [x] ChatView: 对话中命中的实体高亮显示（绿色背景），可点击跳转图谱页面（`/kg?entity=XXX`）
-- [x] GraphView: 接收 `entity` query param，自动高亮并显示该节点详情
-- [x] MessageList: 支持 `v-html` 渲染实体高亮（仅 received 消息有 entities 时）
-- [x] 后端: 最终 chunk 新增 `entities` 字段
-- [x] 修复 GraphView.vue 中 `webkitDep.nodes.map` 对原数据的变异（改用 spread）
-- [x] GraphView 响应式布局（移动端上下排列）
+Docker Compose runs two services:
+- `backend` (Python, port 8000): `Dockerfile`
+- `frontend` (Nginx, port 80): `Dockerfile.frontend` builds Vue app, serves via `nginx.conf`
+- Nginx proxies `/api/` to `backend:8000` with 120s timeout and buffering off (required for SSE streaming)
 
-### Round 5 — 功能扩展 ✅
-
-- [x] 多轮对话记忆：`HISTORY_WINDOW` 环境变量配置上下文窗口（默认 10 轮，0=不限）
-- [x] 对话历史持久化：localStorage 存储 messages + history，页面刷新后恢复，清除对话时同步删除
-- [x] 导出功能：GraphView 支持导出 PNG（ECharts getDataURL）和 JSON（Blob 下载）
-- [x] `.env.example` 补充 API 模式和 HISTORY_WINDOW 配置项
-- [x] 新增 11 个 R5 测试（history 窗口截断、导出数据结构、localStorage key），全量 93 通过
-
-### Round 6 — 生产化 ✅
-
-- [x] Docker 化：`Dockerfile`（Python 后端）+ `Dockerfile.frontend`（Node 构建 + Nginx）+ `docker-compose.yml` + `nginx.conf`（`/api/` 反代到 backend:8000）
-- [x] 错误处理统一：`error_response()` helper 返回 `{error: {code, message, request_id}}`
-- [x] 日志规范化：`query_wiki.py` print 替换为 logger；`/entity` 端点添加错误日志
-- [x] 前端错误提示：ChatView fetch 添加 `.catch()` + `response.ok` 检查，失败时显示错误消息
-- [x] `.env.example` 已包含所有 API 配置项（R5 完成）
-- [x] CI：GitHub Actions（`.github/workflows/ci.yml`）— pytest + npm lint
-- [x] `.dockerignore` 排除无关文件
+```bash
+docker compose up --build
+```
