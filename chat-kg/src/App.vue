@@ -11,15 +11,11 @@ const route = useRoute()
       <div class="header-content">
         <div class="logo-section">
           <span class="logo-icon">🧠</span>
-          <span class="logo-text gradient-text">ChatKG</span>
+          <span class="logo-text gradient-text">ChatZH</span>
         </div>
 
         <nav class="main-nav">
           <RouterLink to="/" class="nav-link" active-class="active">
-            <span class="nav-icon">🏠</span>
-            <span class="nav-text">Home</span>
-          </RouterLink>
-          <RouterLink to="/chat" class="nav-link" active-class="active">
             <span class="nav-icon">💬</span>
             <span class="nav-text">Chat</span>
           </RouterLink>

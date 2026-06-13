@@ -159,7 +159,7 @@ def index():
     mode = "API Mode" if USE_API_MODE else "Local Mode"
     return jsonify({
         "status": "ok",
-        "message": f"ChatKG API Server ({mode})",
+        "message": f"ChatZH API Server ({mode})",
         "api_mode": USE_API_MODE,
         "model": API_MODEL_NAME if USE_API_MODE else "ChatGLM-6B",
         "features": {
@@ -273,7 +273,7 @@ def chat():
                     logger.error(f"Wiki result processing failed: {e}")
 
     # ========== 5. Build API Messages ==========
-    system_prompt = "你叫 ChatKG，是一个基于知识图谱的问答机器人。请用简洁且准确的话回答用户的问题。"
+    system_prompt = "你叫 ChatZH，是一个基于知识图谱的问答机器人。请用简洁且准确的话回答用户的问题。"
     messages = [{"role": "system", "content": system_prompt}]
 
     # Add history (apply window: keep last N rounds)

@@ -28,7 +28,7 @@ const state = reactive({
 })
 
 const DEFAULT_INFO = {
-  title: '你好，我是 ChatKG',
+  title: '你好，我是 ChatZH',
   description: [
     '基于特定领域知识图谱的问答系统，支持多轮对话，支持外部信息检索，你可以：',
     '1. 图谱问答：输入问题，获取相关的答案',
@@ -123,7 +123,7 @@ const sendMessage = (text) => {
 
 const sendDefaultMessage = () => {
   setTimeout(() => {
-    appendMessage('你好？我是 ChatKG，有什么可以帮你？😊', 'received')
+    appendMessage('你好？我是 ChatZH，有什么可以帮你？😊', 'received')
   }, 1000)
 }
 

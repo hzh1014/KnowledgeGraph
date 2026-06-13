@@ -1,130 +1,203 @@
 <template>
   <div class="about">
-    <img class="logo" src="/teamnum.png" alt="">
-    <h2>简介</h2>
-    <p>
-      欢迎访问我们的知识图谱检索和问答网站！本网站旨在为用户提供一个方便、快捷的平台，以便更好地理解和探索专业领域的知识。通过使用我们强大的知识图谱和先进的问答技术，我们希望为您提供有关专业领域的深入见解和独特体验。
-    </p>
-    <img src="/about.png" alt="">
-    <h2>功能与特点</h2>
-    <p>
-      基于知识图谱的专业领域信息检索：通过查询我们的知识图谱，您可以获得相关领域实体、概念和关系的详细信息。
-    </p>
-    <p>
-      自然语言问答系统：我们的网站提供了一个强大的问答功能，您可以输入文本问题，网站将为您提供精确、清晰和全面的答案。
-    </p>
-    <p>
-      多模态信息展示：为了提供更丰富的信息，我们整合了多种数据来源，包括文字、图片，后续会加入视频部分，为您提供更加生动的内容展示。
-    </p>
-    <p>
-      丰富的知识库：我们的知识图谱和问答系统会尽量扩充更多相关的内容，以确保您获取到最新、最准确的领域知识。
-    </p>
-     <h2>使用方法</h2>
-    <p>
-      首页搜索框：在网站首页，用户可以看到一个搜索框。输入您感兴趣的专业领域关键词或问题，然后点击搜索按钮或按回车键。搜索结果将显示与您输入关键词或问题相关的专业知识图谱信息。
-    </p>
-    <p>
-      多维度筛选：在对话页面，用户可以通过多轮对话筛选来缩小搜索范围。例如，可以根据实体、具体类别、类型等进行筛选，以快速找到所需的专业知识。
-    </p>
-    <p>
-      问答功能：用户可以在问答页面输入与专业知识相关的问题。系统将基于知识图谱和预训练的自然语言处理模型生成详细的答案。用户还可以与系统进行多轮对话，以获取更多相关信息。
-    </p>
-    <p>
-      知识图谱可视化：在知识图谱页面，用户可以通过可视化界面直观地了解实体之间的关系。可以缩放、平移和旋转图谱以查看不同层次的关系，还可以点击实体节点查看更多详细信息。
-    </p>
-    <p>
-      用户反馈：如果用户在使用过程中发现问题或需要帮助，可以通过网站的用户反馈功能提交意见和建议。我们将不断优化网站功能，以提供更好的用户体验。
-    </p>
-    <p>
-      实体相关查看：点击搜索结果中的某个实体，将高亮该实体的相关节点，用户可以查看实体的基本信息、相关属性、关联实体和关系等。
-    </p>
-    <p>
-      个性化推荐：根据用户的浏览和搜索历史，网站会为用户提供个性化的专业知识推荐。用户可以在首页或专门的推荐页面查看这些推荐内容。（即将上线）
-    </p>
-    <h2>技术背景</h2>
-    <p>
-      大规模预训练语言模型：本网站使用基于 ChatGLM 的 62 亿参数的大规模预训练语言模型作为生成模型。该模型具有出色的自然语言理解和生成能力，可以根据用户输入的问题生成流畅、准确的回答
-    </p>
-    <p>
-      领域知识图谱：我们利用先进的数据预处理技术和知识图谱构建方法，将海量专业领域数据整合为一个全面、结构化的知识图谱。知识图谱包含了大量实体、关系和属性，能够为用户提供丰富、精确的信息
-    </p>
-    <p>
-      知识图谱补全：为了确保知识图谱的完整性和准确性，我们采用了知识图谱补全技术，自动推断并补充潜在的实体关系，提高知识图谱的覆盖率
-    </p>
-    <p>
-      统一信息抽取模型（UIE）：我们开发了一个基于深度学习的统一信息抽取模型，用于从各种数据源（如文本、图片和视频）中自动抽取和整合专业领域知识
-    </p>
-    <p>
-      外部知识检索：除了利用知识图谱提供信息，我们的系统还具备外部知识检索能力，例如从维基百科等知名知识库中检索相关信息，以提供更全面的答案
-    </p>
-    <p>
-      多模态信息展示：本网站整合了多种数据来源，包括文字、图片和视频，为用户提供更加生动和丰富的内容展示。此外，我们使用 Echarts 进行数据可视化展示，使用户能够直观地了解复杂的知识图谱关系
-    </p>
-    <p>
-      前后端分离的网站架构：本网站采用前后端分离的方式搭建，前端部分使用基于 Vue3 框架以及相关开源组件开发搭建，后端部分采用 Flask 框架进行开发，确保网站的高性能和易用性。
-    </p>
-    <p>
-      通过这些技术和方法的结合，我们的专业知识图谱检索和问答网站能够为用户提供高质量、个性化的专业领域知识服务。
-    </p>
+    <div class="profile-header">
+      <div class="avatar">Z</div>
+      <h1>ChatZH</h1>
+      <p class="tagline">基于知识图谱的智能问答系统</p>
+    </div>
+
+    <section class="card">
+      <h2>关于我</h2>
+      <p>
+        这里可以写你的个人介绍，比如你的专业方向、研究兴趣、技术背景等。
+        例如：专注于自然语言处理与知识图谱领域，致力于将 AI 技术应用于实际场景。
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>技术栈</h2>
+      <div class="tech-tags">
+        <span class="tag">Vue 3</span>
+        <span class="tag">Flask</span>
+        <span class="tag">ECharts</span>
+        <span class="tag">Knowledge Graph</span>
+        <span class="tag">NER</span>
+        <span class="tag">LLM</span>
+        <span class="tag">Python</span>
+        <span class="tag">NLP</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>项目简介</h2>
+      <p>
+        ChatZH 是一个基于知识图谱的问答系统，支持自然语言实体识别、图谱检索、
+        Wikipedia 外部知识增强，以及大语言模型流式对话。
+      </p>
+      <ul>
+        <li>知识图谱检索：基于实体的三元组关系查询</li>
+        <li>NLP 问答：结合 LLM 的多轮对话</li>
+        <li>多模态展示：图谱可视化 + 图片 + 文本</li>
+        <li>外部知识：Wikipedia 信息增强</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>联系方式</h2>
+      <div class="contact-list">
+        <div class="contact-item">
+          <span class="contact-label">GitHub</span>
+          <a href="https://github.com/your-username" target="_blank">github.com/your-username</a>
+        </div>
+        <div class="contact-item">
+          <span class="contact-label">Email</span>
+          <span>your-email@example.com</span>
+        </div>
+        <div class="contact-item">
+          <span class="contact-label">Blog</span>
+          <a href="#" target="_blank">your-blog.com</a>
+        </div>
+      </div>
+    </section>
+
     <footer>
-      <p>© 2023 <a href="http://iat.jiangnan.edu.cn/" target="_blank">A27 团队编号：2203574</a></p>
+      <p>&copy; 2026 ChatZH. All rights reserved.</p>
     </footer>
   </div>
 </template>
 
 <style lang="less" scoped>
 .about {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: #333;
-  width: 80%;
-  max-width: 800px;
-  min-height: calc(100vh - 200px);
+  max-width: 720px;
   margin: 0 auto;
-  margin-top: 40px;
-  // text-align: center;
-  font-family: 'HarmonyOS Sans SC', 'Noto Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', 'WenQuanYi Micro Hei', 'WenQuanYi Zen Hei', 'ST Heiti', 'SimHei', 'WenQuanYi Zen Hei Sharp', 'Droid Sans Fallback', 'Droi';
+  padding: 40px 20px;
+  animation: fadeIn var(--duration-slow) var(--ease-out);
 }
 
-img.logo {
-  width: 300px;
-  // height: 100px;
-  margin: 2rem auto;
-}
-
-img {
-  max-width: 100%;
-  margin: 1rem auto;
-  object-fit: contain;
-  border-radius: 8px;
-}
-
-h2 {
-  width: 100%;
-  font-size: 1.2rem;
-  line-height: 1.2rem;
-  margin: 1em 0;
-  border-left: 5px solid #005f77;
-  padding-left: 0.8em;
-}
-
-p {
-  font-size: 1rem;
-  line-height: 1.8em;
-  margin: 0.5em 0;
-}
-
-
-footer {
-  margin-top: auto;
+.profile-header {
   text-align: center;
-  font-size: 0.8em;
-  color: #999;
+  margin-bottom: 40px;
 
-  a {
-    color: #999;
+  .avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    font-size: 36px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .tagline {
+    color: var(--color-neutral-500);
+    font-size: 1rem;
   }
 }
 
+.card {
+  background: var(--color-neutral-0);
+  border: 1px solid var(--color-neutral-150);
+  border-radius: var(--radius-xl);
+  padding: 24px 28px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--duration-normal) var(--ease-default);
+
+  &:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 12px;
+    padding-left: 12px;
+    border-left: 4px solid #667eea;
+    line-height: 1.4;
+  }
+
+  p {
+    color: var(--color-neutral-600);
+    line-height: 1.8;
+    margin: 8px 0;
+    font-size: 0.95rem;
+  }
+
+  ul {
+    padding-left: 20px;
+    color: var(--color-neutral-600);
+    line-height: 2;
+    font-size: 0.95rem;
+  }
+}
+
+.tech-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  .tag {
+    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    color: #667eea;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid #667eea30;
+  }
+}
+
+.contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .contact-label {
+    min-width: 60px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--color-neutral-500);
+  }
+
+  a {
+    color: #667eea;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  span:not(.contact-label) {
+    color: var(--color-neutral-600);
+    font-size: 0.95rem;
+  }
+}
+
+footer {
+  text-align: center;
+  margin-top: 40px;
+  color: var(--color-neutral-400);
+  font-size: 0.85rem;
+}
 </style>
