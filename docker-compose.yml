@@ -10,7 +10,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./server/data:/app/server/data
+      - ./backend/server/data:/app/backend/server/data
     restart: unless-stopped
 
   frontend:

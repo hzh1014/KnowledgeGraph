@@ -1,5 +1,5 @@
 """
-ChatKG 一键启动脚本
+ChatZH 一键启动脚本
 启动后端 API 服务器和前端开发服务器，然后打开浏览器。
 """
 import subprocess
@@ -11,8 +11,8 @@ import signal
 import socket
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-BACKEND_DIR = BASE_DIR
-FRONTEND_DIR = os.path.join(BASE_DIR, "chat-kg")
+BACKEND_DIR = os.path.join(BASE_DIR, "backend")
+FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 
 processes = []
 
@@ -90,7 +90,7 @@ def wait_for_server(url, timeout=30):
 
 def main():
     print("=" * 40)
-    print("  ChatKG - 知识图谱问答系统")
+    print("  ChatZH - 知识图谱问答系统")
     print("=" * 40)
     print()
 

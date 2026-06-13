@@ -12,12 +12,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY config/ config/
-COPY modules/ modules/
-COPY server/ server/
-COPY data/ data/
+COPY backend/ backend/
 COPY .env.example .env
 
 EXPOSE 8000
 
-CMD ["python", "server/main_api.py"]
+CMD ["python", "backend/server/main_api.py"]

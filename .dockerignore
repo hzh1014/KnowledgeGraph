@@ -1,5 +1,5 @@
 node_modules
-chat-kg/node_modules
+frontend/node_modules
 __pycache__
 *.pyc
 .git

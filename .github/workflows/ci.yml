@@ -41,13 +41,13 @@ jobs:
         with:
           node-version: "18"
           cache: "npm"
-          cache-dependency-path: chat-kg/package-lock.json
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        working-directory: chat-kg
+        working-directory: frontend
         run: npm install
 
       - name: Lint
-        working-directory: chat-kg
+        working-directory: frontend
         run: npm run lint
         continue-on-error: true
